@@ -1,0 +1,19 @@
+name: teammate-review-pr
+description: Run the review agent to review a pull request
+runs:
+  using: composite
+  steps:
+    - name: Run shared setup
+      uses: ${{ env.TEAMMATE_BASE }}/actions/setup@${{ env.TEAMMATE_REF }}
+
+    - name: Run OpenCode for review
+      shell: bash
+      env:
+        PR_NUMBER: ${{ gitea.event.pull_request.number }}
+      run: |
+        cat << EOF | opencode run --agent review
+        PR Number: $PR_NUMBER
+
+        Use the gitea_* tools to fetch the PR diff, post your review,
+        and reassign the PR back to the requester.
+        EOF

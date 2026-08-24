@@ -1,0 +1,39 @@
+name: teammate-modify-pr
+
+on:
+  pull_request:
+    types: [assigned]
+
+jobs:
+  modify-pr:
+    runs-on: ${{ vars.TEAMMATE_RUNNER || 'ubuntu-latest' }}
+    if: gitea.event.pull_request.assignee.login == (vars.TEAMMATE_USER || 'Teammate')
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    env:
+      SERVER_TOKEN: ${{ secrets.SERVER_TOKEN }}
+      SERVER_URL: ${{ vars.SERVER_URL }}
+      GITEA_REPOSITORY: ${{ gitea.repository }}
+      TEAMMATE_USER: ${{ vars.TEAMMATE_USER || 'Teammate' }}
+      TEAMMATE_EMAIL: ${{ vars.TEAMMATE_EMAIL }}
+      TEAMMATE_BASE: ${{ vars.TEAMMATE_BASE || 'zeyber/gitea-teammate' }}
+      TEAMMATE_REF: ${{ vars.TEAMMATE_REF || 'main' }}
+    steps:
+      - name: Install Alpine dependencies (if applicable)
+        shell: sh
+        run: |
+          if grep -qi alpine /etc/os-release 2>/dev/null; then
+            echo "Alpine detected — installing required packages..."
+            apk add --no-cache git curl bash nodejs
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Run OpenCode PR modification
+        uses: ./actions/modify-pr

@@ -1,0 +1,29 @@
+name: teammate-plan-issue
+description: Run the plan agent to break down a Gitea issue into sub-issues
+runs:
+  using: composite
+  steps:
+    - name: Run shared setup
+      uses: ${{ env.TEAMMATE_BASE }}/actions/setup@${{ env.TEAMMATE_REF }}
+
+    - name: Run OpenCode for planning
+      shell: bash
+      env:
+        ISSUE_NUMBER: ${{ gitea.event.issue.number }}
+        ISSUE_TITLE: ${{ gitea.event.issue.title }}
+        ISSUE_BODY: ${{ gitea.event.issue.body }}
+      run: |
+        ISSUE_TITLE="$(printf '%s' "$ISSUE_TITLE" | tr '\n\r' '  ')"
+        ISSUE_BODY="$(printf '%s' "$ISSUE_BODY" | tr '\n\r' '  ')"
+        cat << EOF | opencode run --agent plan
+        Issue Number: $ISSUE_NUMBER
+        Title: $ISSUE_TITLE
+        Body: $ISSUE_BODY
+
+        Use the gitea_* tools to fetch issue details, analyze the
+        discussion, and create sub-issues only if they have been
+        suggested and approved within the conversation. You may also
+        optionally propose updates to the issue title and/or description,
+        but always ask permission first. Post a plan comment and reassign
+        the issue back to the requester.
+        EOF

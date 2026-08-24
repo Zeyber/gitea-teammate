@@ -1,0 +1,23 @@
+name: teammate-implement-issue
+description: Run the implement agent to implement a feature from a Gitea issue
+runs:
+  using: composite
+  steps:
+    - name: Run shared setup
+      uses: ${{ env.TEAMMATE_BASE }}/actions/setup@${{ env.TEAMMATE_REF }}
+
+    - name: Run OpenCode for implementation
+      shell: bash
+      env:
+        ISSUE_NUMBER: ${{ gitea.event.issue.number }}
+        ISSUE_TITLE: ${{ gitea.event.issue.title }}
+      run: |
+        ISSUE_TITLE="$(printf '%s' "$ISSUE_TITLE" | tr '\n\r' '  ')"
+        cat << EOF | opencode run --agent implement
+        Issue Number: $ISSUE_NUMBER
+        Title: $ISSUE_TITLE
+
+        Use the gitea_* tools to fetch issue details and comments,
+        create a branch, implement the feature, push changes, create
+        a PR, and reassign the issue back to the requester.
+        EOF

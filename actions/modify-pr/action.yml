@@ -1,0 +1,27 @@
+name: teammate-modify-pr
+description: Run the pr-modify agent to address review feedback on a pull request
+runs:
+  using: composite
+  steps:
+    - name: Checkout PR branch
+      shell: bash
+      env:
+        PR_HEAD_REF: ${{ gitea.event.pull_request.head.ref }}
+      run: git checkout "$PR_HEAD_REF"
+
+    - name: Run shared setup
+      uses: ${{ env.TEAMMATE_BASE }}/actions/setup@${{ env.TEAMMATE_REF }}
+
+    - name: Run OpenCode for PR modification
+      shell: bash
+      env:
+        PR_NUMBER: ${{ gitea.event.pull_request.number }}
+      run: |
+        cat << EOF | opencode run --agent pr-modify
+        PR Number: $PR_NUMBER
+
+        Use the gitea_* tools to fetch the PR diff, comments, review
+        comments, and any referenced issue. Make the necessary code
+        changes, push them, post a summary comment, and reassign the
+        PR back to the requester.
+        EOF

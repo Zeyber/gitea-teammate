@@ -1,0 +1,47 @@
+name: teammate-setup
+description: Install OpenCode CLI, configure git credentials, and seed missing agent configs into the project checkout
+runs:
+  using: composite
+  steps:
+    - name: Install Alpine dependencies
+      shell: bash
+      run: |
+        if grep -qi alpine /etc/os-release 2>/dev/null; then
+          echo "Alpine detected — installing required packages..."
+          apk add --no-cache \
+            git \
+            curl \
+            bash \
+            nodejs \
+            npm \
+            sed \
+            coreutils
+          # OpenCode CLI binary likely linked against glibc; install compat layer
+          apk add --no-cache gcompat 2>/dev/null || \
+            apk add --no-cache libc6-compat 2>/dev/null || true
+        fi
+
+    - name: Configure git
+      shell: bash
+      run: |
+        NAME="${TEAMMATE_USER:-Teammate}"
+        EMAIL="${TEAMMATE_EMAIL:-${NAME}@users.noreply.local}"
+        git config --global user.name "${NAME}[bot]"
+        git config --global user.email "$EMAIL"
+        git config --global credential.helper '!f() { echo "username=${TEAMMATE_USER:-Teammate}"; echo "password=${SERVER_TOKEN}"; }; f'
+        git config --global credential.useHttpPath true
+
+    - name: Install OpenCode CLI
+      shell: bash
+      run: curl -fsSL https://opencode.ai/install | bash
+
+    - name: Seed missing agent configs
+      shell: bash
+      run: |
+        SRC="${{ github.action_path }}/../../.opencode"
+        mkdir -p .opencode
+        cp -rn "$SRC"/. .opencode/
+
+    - name: Install tool dependencies
+      shell: bash
+      run: npm install --prefix .opencode --no-audit --no-fund

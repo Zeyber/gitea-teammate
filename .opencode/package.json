@@ -1,0 +1,9 @@
+{
+  "name": "gitea-teammate-tools",
+  "private": true,
+  "type": "module",
+  "description": "Runtime dependencies for the custom tools in .opencode/tools",
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.18.22"
+  }
+}
