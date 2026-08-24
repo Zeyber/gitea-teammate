@@ -54,10 +54,11 @@ and updates by moving a tag.
 ## Quick start
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/zeyber/gitea-teammate/v1.0.0/install.sh)"
+REF=v1.0.0 bash -c "$(curl -fsSL https://raw.githubusercontent.com/zeyber/gitea-teammate/v1.0.0/install.sh)"
 ```
 
-Review the script before running it, and pin a tag rather than `main`.
+Review the script before running it. `REF` pins the version your workflows
+run — without it they track `main` and change under you on every push here.
 
 Then, in your Gitea repository:
 
